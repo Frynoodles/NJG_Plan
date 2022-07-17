@@ -1,0 +1,8 @@
+{
+  "owner_mail": "",
+  "smtp_host": "smtp.xxx.com",
+  "smtp_user": "",
+  "smtp_pass": "",
+  "db_user": "root",
+  "db_pwd": ""
+}
