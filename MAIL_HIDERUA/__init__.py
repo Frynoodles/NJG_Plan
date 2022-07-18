@@ -2,6 +2,8 @@ import smtplib
 from email.mime.text import MIMEText
 from email.header import Header
 from email.utils import formataddr
+from email.mime.multipart import MIMEMultipart
+from email.mime.image import MIMEImage
 
 
 def send_mail(title: str, msg: str, tomails: list[str], smtp_host: str,
@@ -10,7 +12,6 @@ def send_mail(title: str, msg: str, tomails: list[str], smtp_host: str,
     """
     发送信息
 
-    :param to_name: 发送对象的名字，默认为 用户
     :param from_name: 发送方的名字，默认为bot-N
     :param title: 邮件的标题
     :param tomails: 发送邮件对象的邮件，列表
@@ -25,14 +26,24 @@ def send_mail(title: str, msg: str, tomails: list[str], smtp_host: str,
     mail_pass = smtp_pass  # 口令
     sender = smtp_user
     receivers = tomails
-    message = MIMEText(msg, 'html', 'utf-8')
+    message = MIMEMultipart('related')
+    msgAlternative = MIMEMultipart('alternative')
+    message.attach(msgAlternative)
+    msgAlternative.attach(MIMEText(msg, 'html', 'utf-8'))
+    fp = open('./resource/header.jpg', 'rb')
+    msgImage = MIMEImage(fp.read())
+    fp.close()
+    msgImage.add_header('Content-ID', '<image1>')
+    message.attach(msgImage)
     message['From'] = formataddr((from_name, smtp_user))
     subject = title
     message['Subject'] = Header(subject, 'utf-8')
     try:
         smtpObj = smtplib.SMTP()
         smtpObj.connect(mail_host, 25)
+        print(1)
         smtpObj.login(mail_user, mail_pass)
+        print(smtpObj)
         smtpObj.sendmail(sender, receivers, message.as_string())
         print("邮件发送成功")
     except smtplib.SMTPException:
