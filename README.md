@@ -26,7 +26,7 @@
 
 ## 使用外部库
 
-`requests``lxml`
+`requests``lxml``pymysql`
 
 ## 快速开始
 
