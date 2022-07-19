@@ -6,6 +6,7 @@ import time
 import sqlite3
 from BLBL import get_BLBL_data
 from BLBL import get_info
+import pymysql
 
 
 def get_msg(name, url, title=""):
@@ -207,11 +208,21 @@ def init_database():
 
     # 初始化数据库及表单
     print('开始检测数据库')
-    db = sqlite3.connect('./resource/NJG.db')
     try:
-        db.execute('select * from yhdm')
-    except sqlite3.OperationalError:
+        db = pymysql.connect(host='localhost', user=db_user, password=db_pwd, database='NJG')
+        db.close()
+    except pymysql.OperationalError:
+        db = pymysql.connect(host='localhost', user=db_user, password=db_pwd)
         cursor = db.cursor()
+        cursor.execute('create database NJG')
+        db.commit()
+        db.close()
+        print('创建数据库NJG成功')
+    db = pymysql.connect(host='localhost', user=db_user, password=db_pwd, database='NJG')
+    cursor = db.cursor()
+    try:
+        cursor.execute('select * from yhdm')
+    except pymysql.err.ProgrammingError:
         cursor.execute(f'CREATE TABLE yhdm (\
                              showid varchar(10) NOT NULL,\
                              name varchar(50) NOT NULL,\
@@ -219,12 +230,11 @@ def init_database():
                              date date DEFAULT NULL,\
                              user_email varchar(3000) DEFAULT "{owner_mail}",\
                              PRIMARY KEY (showid,name)\
-                             )')
+                             )charset=utf8')
         print('创建表单yhdm成功')
     try:
-        db.execute('select * from yhdmp')
-    except sqlite3.OperationalError:
-        cursor = db.cursor()
+        cursor.execute('select * from yhdmp')
+    except pymysql.err.ProgrammingError:
         cursor.execute(f'CREATE TABLE yhdmp (\
                                      showpid varchar(10) NOT NULL,\
                                      name varchar(50) NOT NULL,\
@@ -232,12 +242,11 @@ def init_database():
                                      date date DEFAULT NULL,\
                                      user_email varchar(3000) DEFAULT "{owner_mail}",\
                                      PRIMARY KEY (showpid,name)\
-                                     )')
+                                     )charset=utf8')
         print('创建表单yhhdmp成功')
     try:
-        db.execute('select * from blbl')
-    except sqlite3.OperationalError:
-        cursor = db.cursor()
+        cursor.execute('select * from blbl')
+    except pymysql.err.ProgrammingError:
         cursor.execute(f'CREATE TABLE blbl (\
                                      mid varchar(20) NOT NULL,\
                                      name varchar(50) NOT NULL,\
@@ -245,7 +254,7 @@ def init_database():
                                      date date DEFAULT NULL,\
                                      user_email varchar(3000) DEFAULT "{owner_mail}",\
                                      PRIMARY KEY (mid,name)\
-                                     )')
+                                     )charset=utf8')
         print('创建表单blbl成功')
     db.commit()
     db.close()
@@ -286,13 +295,13 @@ def check_YH():
     检测樱花动漫 http://www.yinghuacd.com/
 
     """
-    db = sqlite3.connect('./resource/NJG.db')
-    curosr = db.cursor()
+    db = pymysql.connect(host='localhost', user=db_user, password=db_pwd, database='NJG')
+    cursor = db.cursor()
     # 获取所有在表的数据
     sql = 'select * from yhdm'
     try:
-        curosr.execute(sql)
-        results = curosr.fetchall()
+        cursor.execute(sql)
+        results = cursor.fetchall()
         for row in results:
             print('开始检测樱花动漫:', row)
             showid = row[0]
@@ -309,7 +318,7 @@ def check_YH():
                 # 更新表单
                 update_sql = f'update yhdm set current_episode = {result["current_episode"]},date = date("now") where showid = {showid}'
                 # 执行命令
-                curosr.execute(update_sql)
+                cursor.execute(update_sql)
             else:
                 print('无更新')
             # 提交
@@ -325,13 +334,13 @@ def check_BR():
     检测哔哩哔哩
 
     """
-    db = sqlite3.connect('./resource/NJG.db')
-    curosr = db.cursor()
+    db = pymysql.connect(host='localhost', user=db_user, password=db_pwd, database='NJG')
+    cursor = db.cursor()
     # 获取所有在表的数据
     sql = 'select * from blbl'
     try:
-        curosr.execute(sql)
-        results = curosr.fetchall()
+        cursor.execute(sql)
+        results = cursor.fetchall()
         for row in results:
             print('开始检测哔哩哔哩:', row)
             mid: str = row[0]
@@ -350,7 +359,7 @@ def check_BR():
                 # 更新表单
                 update_sql = f'update blbl set current_episode = {int(result["current_episode"])},date = date("now") where mid = {mid}'
                 # 执行命令
-                curosr.execute(update_sql)
+                cursor.execute(update_sql)
             else:
                 print('无更新')
             # 提交
