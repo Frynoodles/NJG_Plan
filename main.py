@@ -4,9 +4,11 @@ from MAIL_HIDERUA import send_mail
 from YH_HIDERUA import get_YH_data
 import time
 import sqlite3
+from BLBL import get_BLBL_data
+from BLBL import get_info
 
 
-def get_msg(name, url):
+def get_msg(name: str, url: str, title: str = ""):
     return r"""
     <div>
     <includetail>
@@ -95,7 +97,13 @@ def get_msg(name, url):
                     <td
                         style="font-family: 'Helvetica Neue',Helvetica,Arial,sans-serif; font-size: 13px; line-height: 1.6; color: #5c5c5c; -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; mso-table-lspace: 0pt; mso-table-rspace: 0pt; padding: 25px 0;">
                         <img src="cid:image1"
-                            width="200" height="200" style="-ms-interpolation-mode: bicubic;">
+                            height="200"  style="-ms-interpolation-mode: bicubic;">
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                    """ + \
+           title + """
                     </td>
                 </tr>
                 <tr>
@@ -207,7 +215,7 @@ def init_database():
         cursor.execute(f'CREATE TABLE yhdm (\
                              showid varchar(10) NOT NULL,\
                              name varchar(50) NOT NULL,\
-                             current_episode int(11) NOT NULL,\
+                             current_episode int(5) NOT NULL,\
                              date date DEFAULT NULL,\
                              user_email varchar(3000) DEFAULT "{owner_mail}",\
                              PRIMARY KEY (showid,name)\
@@ -220,12 +228,25 @@ def init_database():
         cursor.execute(f'CREATE TABLE yhdmp (\
                                      showpid varchar(10) NOT NULL,\
                                      name varchar(50) NOT NULL,\
-                                     current_episode int(11) NOT NULL,\
+                                     current_episode int(5) NOT NULL,\
                                      date date DEFAULT NULL,\
                                      user_email varchar(3000) DEFAULT "{owner_mail}",\
                                      PRIMARY KEY (showpid,name)\
                                      )')
         print('创建表单yhhdmp成功')
+    try:
+        db.execute('select * from blbl')
+    except sqlite3.OperationalError:
+        cursor = db.cursor()
+        cursor.execute(f'CREATE TABLE blbl (\
+                                     mid varchar(20) NOT NULL,\
+                                     name varchar(50) NOT NULL,\
+                                     current_episode int(5) NOT NULL,\
+                                     date date DEFAULT NULL,\
+                                     user_email varchar(3000) DEFAULT "{owner_mail}",\
+                                     PRIMARY KEY (mid,name)\
+                                     )')
+        print('创建表单blbl成功')
     db.commit()
     db.close()
     print('数据库检测完成')
@@ -273,7 +294,7 @@ def check_YH():
         curosr.execute(sql)
         results = curosr.fetchall()
         for row in results:
-            print('开始检测:', row)
+            print('开始检测樱花动漫:', row)
             showid: str = row[0]
             name: str = row[1]
             current_episode: int = row[2]
@@ -286,15 +307,15 @@ def check_YH():
                 send_mail(f'番剧《{name}》更新提醒', get_msg(name, result['url']), user_emails.split(","), smtp_host, smtp_user,
                           smtp_pass)
                 # 更新表单
-                update_sql = f'update yhdm set current_episode = {current_episode + 1},date = date("now") where showid = {showid}'
+                update_sql = f'update yhdm set current_episode = {result["current_episode"]},date = date("now") where showid = {showid}'
                 # 执行命令
                 curosr.execute(update_sql)
             else:
                 print('无更新')
             # 提交
             db.commit()
-    except:
-        print("Error: unable to fetch data")
+    except Exception as err:
+        print(err)
         db.rollback()
     db.close()
 
@@ -304,6 +325,40 @@ def check_BR():
     检测哔哩哔哩
 
     """
+    db = sqlite3.connect('./resource/NJG.db')
+    curosr = db.cursor()
+    # 获取所有在表的数据
+    sql = 'select * from blbl'
+    try:
+        curosr.execute(sql)
+        results = curosr.fetchall()
+        for row in results:
+            print('开始检测哔哩哔哩:', row)
+            mid: str = row[0]
+            name: str = row[1]
+            current_episode: int = row[2]
+            # update_date = row[3]
+            user_emails: str = row[4]
+            result = get_BLBL_data(mid)
+            if int(result['current_episode']) > current_episode:
+                info = get_info(result['season_id'])
+                print('检测到更新，开始发送邮件')
+                # 有更新，发送请求
+                send_mail(f'番剧《{name}》更新提醒', get_msg(name, result['url'], info['title']), user_emails.split(","),
+                          smtp_host, smtp_user,
+                          smtp_pass, pic=info['cover'])
+                # 更新表单
+                update_sql = f'update blbl set current_episode = {int(result["current_episode"])},date = date("now") where mid = {mid}'
+                # 执行命令
+                curosr.execute(update_sql)
+            else:
+                print('无更新')
+            # 提交
+            db.commit()
+    except Exception as err:
+        print(err)
+        db.rollback()
+    db.close()
     pass
 
 

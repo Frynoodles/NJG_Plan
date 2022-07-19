@@ -5,13 +5,16 @@ from email.utils import formataddr
 from email.mime.multipart import MIMEMultipart
 from email.mime.image import MIMEImage
 
+import requests
+
 
 def send_mail(title: str, msg: str, tomails: list[str], smtp_host: str,
               smtp_user: str, smtp_pass: str,
-              from_name: str = 'bot-N'):
+              from_name: str = 'bot-N', pic: str = ""):
     """
     发送信息
 
+    :param pic: 附带图片的链接
     :param from_name: 发送方的名字，默认为bot-N
     :param title: 邮件的标题
     :param tomails: 发送邮件对象的邮件，列表
@@ -30,9 +33,12 @@ def send_mail(title: str, msg: str, tomails: list[str], smtp_host: str,
     msgAlternative = MIMEMultipart('alternative')
     message.attach(msgAlternative)
     msgAlternative.attach(MIMEText(msg, 'html', 'utf-8'))
-    fp = open('./resource/header.jpg', 'rb')
-    msgImage = MIMEImage(fp.read())
-    fp.close()
+    if len(pic) < 5:  # 其实链接长度肯定不止五，而这里不等于0就行
+        fp = open('./resource/header.jpg', 'rb')
+        msgImage = MIMEImage(fp.read())
+        fp.close()
+    else:
+        msgImage = MIMEImage(requests.get(pic).content)
     msgImage.add_header('Content-ID', '<image1>')
     message.attach(msgImage)
     message['From'] = formataddr((from_name, smtp_user))
@@ -41,12 +47,8 @@ def send_mail(title: str, msg: str, tomails: list[str], smtp_host: str,
     try:
         smtpObj = smtplib.SMTP()
         smtpObj.connect(mail_host, 25)
-        print(1)
         smtpObj.login(mail_user, mail_pass)
-        print(smtpObj)
         smtpObj.sendmail(sender, receivers, message.as_string())
         print("邮件发送成功")
     except smtplib.SMTPException:
         print("Error: 无法发送邮件")
-
-
