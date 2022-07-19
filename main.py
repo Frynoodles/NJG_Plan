@@ -287,12 +287,12 @@ def check_YH():
 
     """
     db = sqlite3.connect('./resource/NJG.db')
-    curosr = db.cursor()
+    cursor = db.cursor()
     # 获取所有在表的数据
     sql = 'select * from yhdm'
     try:
-        curosr.execute(sql)
-        results = curosr.fetchall()
+        cursor.execute(sql)
+        results = cursor.fetchall()
         for row in results:
             print('开始检测樱花动漫:', row)
             showid = row[0]
@@ -309,7 +309,7 @@ def check_YH():
                 # 更新表单
                 update_sql = f'update yhdm set current_episode = {result["current_episode"]},date = date("now") where showid = {showid}'
                 # 执行命令
-                curosr.execute(update_sql)
+                cursor.execute(update_sql)
             else:
                 print('无更新')
             # 提交
@@ -326,12 +326,12 @@ def check_BR():
 
     """
     db = sqlite3.connect('./resource/NJG.db')
-    curosr = db.cursor()
+    cursor = db.cursor()
     # 获取所有在表的数据
     sql = 'select * from blbl'
     try:
-        curosr.execute(sql)
-        results = curosr.fetchall()
+        cursor.execute(sql)
+        results = cursor.fetchall()
         for row in results:
             print('开始检测哔哩哔哩:', row)
             mid: str = row[0]
@@ -350,7 +350,7 @@ def check_BR():
                 # 更新表单
                 update_sql = f'update blbl set current_episode = {int(result["current_episode"])},date = date("now") where mid = {mid}'
                 # 执行命令
-                curosr.execute(update_sql)
+                cursor.execute(update_sql)
             else:
                 print('无更新')
             # 提交
@@ -378,7 +378,5 @@ if __name__ == '__main__':
     smtp_host: str = config_data['smtp_host']
     smtp_user: str = config_data['smtp_user']
     smtp_pass: str = config_data['smtp_pass']
-    db_user: str = config_data['db_user']
-    db_pwd: str = config_data['db_pwd']
     init()
     pass
