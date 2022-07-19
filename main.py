@@ -126,7 +126,7 @@ def get_msg(name: str, url: str, title: str = ""):
                                                             尊敬的NJG user 您好！
                                                         </h1>
                                                         <p>
-                                                            您订阅的番剧《""" + name + """"》更新了
+                                                            您订阅的番剧《""" + name + """》更新了
                                                         </p>
                                                         <div id="cta">
                                                             <a href=""
