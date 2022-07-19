@@ -19,7 +19,7 @@ def __get_yhdm_url(showid):
     return f'http://www.yinghuacd.com/show/{showid}.html'
 
 
-def check_yhdm_list(showid_list: list[str]) -> list[dict]:
+def check_yhdm_list(showid_list):
     """
     检测数据表yhdm中的番剧是否更新，返回json列表\n
 
@@ -32,7 +32,7 @@ def check_yhdm_list(showid_list: list[str]) -> list[dict]:
     return result
 
 
-def get_YH_data(showid: str) -> dict:
+def get_YH_data(showid):
     """
     根据樱花动漫show栏的id获取数据
 

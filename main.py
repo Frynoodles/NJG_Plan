@@ -1,6 +1,6 @@
 from threading import Thread
 import json
-from MAIL_HIDERUA import send_mail
+from mail import sendmail
 from YH_HIDERUA import get_YH_data
 import time
 import sqlite3
@@ -8,7 +8,7 @@ from BLBL import get_BLBL_data
 from BLBL import get_info
 
 
-def get_msg(name: str, url: str, title: str = ""):
+def get_msg(name, url, title=""):
     return r"""
     <div>
     <includetail>
@@ -275,7 +275,7 @@ def time_task():
             check_BR()
             check_YHP()
         except (TypeError, TimeoutError, NameError, KeyError, IndexError) as err:
-            send_mail('错误通知', f'发送了一个错误{err}', [owner_mail], smtp_host, smtp_user, smtp_pass)
+            sendmail('错误通知', f'发送了一个错误{err}', [owner_mail], smtp_host, smtp_user, smtp_pass)
         print('本轮任务执行完毕，开始休眠5分钟')
         time.sleep(300)
         print('休眠5分钟结束，即将开始下一轮任务')
@@ -295,17 +295,17 @@ def check_YH():
         results = curosr.fetchall()
         for row in results:
             print('开始检测樱花动漫:', row)
-            showid: str = row[0]
-            name: str = row[1]
-            current_episode: int = row[2]
+            showid = row[0]
+            name = row[1]
+            current_episode = row[2]
             # update_date = row[3]
-            user_emails: str = row[4]
+            user_emails = row[4]
             result = get_YH_data(showid)
             if result['current_episode'] > current_episode:
                 print('检测到更新，开始发送邮件')
                 # 有更新，发送请求
-                send_mail(f'番剧《{name}》更新提醒', get_msg(name, result['url']), user_emails.split(","), smtp_host, smtp_user,
-                          smtp_pass)
+                sendmail(f'番剧《{name}》更新提醒', get_msg(name, result['url']), user_emails.split(","), smtp_host, smtp_user,
+                         smtp_pass)
                 # 更新表单
                 update_sql = f'update yhdm set current_episode = {result["current_episode"]},date = date("now") where showid = {showid}'
                 # 执行命令
@@ -344,9 +344,9 @@ def check_BR():
                 info = get_info(result['season_id'])
                 print('检测到更新，开始发送邮件')
                 # 有更新，发送请求
-                send_mail(f'番剧《{name}》更新提醒', get_msg(name, result['url'], info['title']), user_emails.split(","),
-                          smtp_host, smtp_user,
-                          smtp_pass, pic=info['cover'])
+                sendmail(f'番剧《{name}》更新提醒', get_msg(name, result['url'], info['title']), user_emails.split(","),
+                         smtp_host, smtp_user,
+                         smtp_pass, pic=info['cover'])
                 # 更新表单
                 update_sql = f'update blbl set current_episode = {int(result["current_episode"])},date = date("now") where mid = {mid}'
                 # 执行命令

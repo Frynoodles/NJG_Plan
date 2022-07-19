@@ -8,9 +8,7 @@ from email.mime.image import MIMEImage
 import requests
 
 
-def send_mail(title: str, msg: str, tomails: list[str], smtp_host: str,
-              smtp_user: str, smtp_pass: str,
-              from_name: str = 'bot-N', pic: str = ""):
+def sendmail(title, msg, tomails, smtp_host, smtp_user, smtp_pass, from_name='bot-N', pic=""):
     """
     发送信息
 

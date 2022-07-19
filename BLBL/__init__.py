@@ -11,7 +11,7 @@ headers = {
 }
 
 
-def get_info(season_id: str) -> dict:
+def get_info(season_id):
     """
     获取更加详细的信息
 
@@ -28,7 +28,7 @@ def get_info(season_id: str) -> dict:
     return {'cover': cover, 'title': title}
 
 
-def get_BLBL_data(mid: str) -> dict:
+def get_BLBL_data(mid):
     """
     获取指定mid番剧的信息
 
